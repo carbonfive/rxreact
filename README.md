@@ -55,7 +55,7 @@ Expressed in code, a view model looks like this:
 
 ```typescript
 // a list of cars to display
-let cars$ : Observable<Car[]> = Observable.of([car1, car2, car3])
+let cars$ : Observable<Car[]> = Observable.of(car1, car2, car3)
 
 // a subject representing the action of a user selecting a car
 let selectCar$: Subject<CarId> = new Subject();
@@ -151,7 +151,7 @@ withViewModel(vm)(CarComponent) // type error -- car component does not expect s
 ```
 
 ```typescript
-let users$: Observable<User[]> = Observable.of([user1, user2, user3]);
+let users$: Observable<User[]> = Observable.of(user1, user2, user3);
 let vm = {
   inputs: {
     cars: users$,
