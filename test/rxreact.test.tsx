@@ -22,11 +22,56 @@ describe("withViewModel", () => {
       rendered.unmount();
     });
 
-    it("renders immediatly", () => {
+    it("renders immediately", () => {
       expect(rendered.exists()).toEqual(true);
       expect(rendered.text()).toContain("I'm rendered");
     });
   });
+
+  describe("when `inputs` are empty", () => {
+    it("still renders", () => {
+      interface OutputOnlyComponentProps {
+        inputNumber: (_: number) => void;
+      }
+      let Component: React.SFC<OutputOnlyComponentProps> = () =>
+        <div>Just checking</div>;
+      let viewModel = {
+        inputs: {},
+        outputs: {inputNumber: new Subject<number>()}
+      };
+      let ComponentWithViewModel = withViewModel(viewModel)(Component);
+      const subject = mount(<ComponentWithViewModel/>);
+
+      expect(subject.text()).toEqual("Just checking");
+    });
+  });
+
+  describe("when `outputs` are empty", () => {
+    it("still renders", () => {
+      interface InputOnlyComponentProps {
+        derived1: number;
+        derived2: string;
+      }
+
+      let Component: React.SFC<InputOnlyComponentProps> = ({
+                                                             derived1,
+                                                             derived2,
+                                                           }) =>
+        <div>We have {derived1} {derived2}</div>;
+      let viewModel = {
+        inputs: {
+          derived1: of(2),
+          derived2: of("bananas"),
+        },
+        outputs: {}
+      };
+      let ComponentWithViewModel = withViewModel(viewModel)(Component);
+      const subject = mount(<ComponentWithViewModel/>);
+
+      expect(subject.text()).toEqual("We have 2 bananas");
+    });
+  });
+
 
   describe("given a static view model definition", () => {
     interface ComponentProps {

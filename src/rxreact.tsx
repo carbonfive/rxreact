@@ -10,7 +10,7 @@ function getObservableState<S>(
   if (inputs instanceof Observable) {
     return inputs;
   }
-  return inputs ? combineObservables(inputs) : (of({}) as Observable<S>);
+  return inputs && Object.keys(inputs).length ? combineObservables(inputs) : (of({}) as Observable<S>);
 }
 
 function withViewModelFactory<S, A, P>(
