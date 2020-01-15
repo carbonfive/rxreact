@@ -1,4 +1,4 @@
-import { Observable, Subject } from 'rxjs'
+import { Observable, Subject, Subscription } from 'rxjs'
 
 export type ObservableMap<S> = { [K in keyof S]: Observable<S[K]> }
 
@@ -12,6 +12,7 @@ export type Difference<A, Without> = Pick<A, Exclude<keyof A, keyof Without>>
 export interface ViewModel<S, A> {
   inputs?: ObservableMap<S> | Observable<S>
   outputs?: SubjectMap<A>
+  unsubscribe?: Subscription[]
 }
 
 export type ViewModelFactory<S, A, P> = (ownProps: Observable<P>) => ViewModel<S, A>

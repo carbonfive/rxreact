@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Observable, Subject, combineLatest, of } from "rxjs";
-import { map, startWith, merge } from "rxjs/operators";
-import { withViewModel } from "../src/rxreact";
+import { map, startWith, merge, withLatestFrom } from "rxjs/operators";
+import { withViewModel, ViewModel } from "../src/rxreact";
 import { mount, ReactWrapper } from "enzyme";
 
 describe("withViewModel", () => {
@@ -272,8 +272,13 @@ describe("withViewModel", () => {
   });
 
   describe("given a factory function that returns a view model", () => {
+    let onUnsubscribe: jest.Mock;
+
     let vm = (otherProps: Observable<{ otherProp: string }>) => {
       let tempSubject: Subject<string> = new Subject();
+
+      const localSubscription = tempSubject.subscribe();
+      localSubscription.add(onUnsubscribe);
 
       return {
         inputs: {
@@ -282,7 +287,8 @@ describe("withViewModel", () => {
         },
         outputs: {
           inputString: tempSubject
-        }
+        },
+        unsubscribe: [localSubscription]
       };
     };
 
@@ -319,6 +325,7 @@ describe("withViewModel", () => {
     let rendered: ReactWrapper<any, any>;
 
     beforeEach(() => {
+      onUnsubscribe = jest.fn();
       rendered = mount(
         <ComponentWithViewModel otherOtherProp="pass-through" otherProp={"cheese"} />
       );
@@ -335,6 +342,15 @@ describe("withViewModel", () => {
     });
     it("renders temporary subject derived signal", () => {
       expect(rendered.find("#subject-derived").text()).toContain("oranges");
+    });
+
+    it("unsubscribes to local subscriptions on unmount", () => {
+      expect(onUnsubscribe).not.toHaveBeenCalled();
+      rendered.unmount();
+      expect(onUnsubscribe).toHaveBeenCalled();
+
+      // To work with the afterEach block
+      rendered.mount();
     });
 
     describe("when actions are called on temporary subject", () => {

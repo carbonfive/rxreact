@@ -22,7 +22,7 @@ function withViewModelFactory<S, A, P>(
     WrappedComponent: React.ComponentType<T>
   ): React.ComponentClass<Difference<T, S & ActionMap<A>> & P> {
     return class ConnectState extends React.Component<Difference<T, S & ActionMap<A>> & P, S> {
-      subscription: Subscription | undefined;
+      subscriptions: Subscription[] = [];
       actions: ActionMap<A>;
       observableState: Observable<S>;
       propsObservable: Subject<P> = new ReplaySubject<P>(1);
@@ -34,11 +34,14 @@ function withViewModelFactory<S, A, P>(
         this.actions = viewModel.outputs
           ? subjectMapToActionMap(viewModel.outputs)
           : ({} as ActionMap<A>);
+        this.subscriptions = viewModel.unsubscribe || [];
       }
 
       componentDidMount() {
         this.propsObservable.next(this.props as Readonly<P>);
-        this.subscription = this.observableState.subscribe(newState => this.setState(newState));
+        this.subscriptions.push(
+          this.observableState.subscribe(newState => this.setState(newState))
+        );
       }
 
       componentDidUpdate(prevProps: Difference<T, S & ActionMap<A>> & P) {
@@ -48,7 +51,7 @@ function withViewModelFactory<S, A, P>(
       }
 
       componentWillUnmount() {
-        this.subscription && this.subscription.unsubscribe();
+        this.subscriptions.forEach(subscription => subscription.unsubscribe());
       }
 
       render() {
